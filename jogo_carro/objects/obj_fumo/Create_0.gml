@@ -1,4 +1,5 @@
-image_xscale = 0.5;
-image_yscale = 0.5;
-speed = 1;
-direction = irandom(360);
+sprite_index = -1;
+vida = 1.0;
+vel_x = random_range(-2.5, 2.5);
+vel_y = random_range(-2, 0.5);
+raio = 1 + random(2);

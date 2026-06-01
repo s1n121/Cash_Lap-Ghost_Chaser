@@ -6,6 +6,7 @@
   ],
   "ResourceOrderSettings":[
     {"name":"fnt_controlesEregras","order":2,"path":"fonts/fnt_controlesEregras/fnt_controlesEregras.yy",},
+    {"name":"fnt_perguntas","order":3,"path":"fonts/fnt_perguntas/fnt_perguntas.yy",},
     {"name":"fnt_titulo","order":1,"path":"fonts/fnt_titulo/fnt_titulo.yy",},
     {"name":"obj_checkpoint","order":12,"path":"objects/obj_checkpoint/obj_checkpoint.yy",},
     {"name":"obj_fumo","order":9,"path":"objects/obj_fumo/obj_fumo.yy",},
