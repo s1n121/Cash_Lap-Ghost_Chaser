@@ -8,22 +8,71 @@ var _right = keyboard_check(vk_right) || keyboard_check(ord("D"));
 if (instance_exists(obj_hud)) chuva_ativa = obj_hud.chuva_ativa;
 
 // =====================================================
-// MOVIMENTO
+// MOVIMENTO E COMPORTAMENTO DOS PNEUS / QUIZ
 // =====================================================
 if (pode_mover && !em_pergunta && !aguardando_reboque) {
 
     max_speed_atual = max_speed;
     turn_speed = turn_speed_original;
+    var _fator_aceleracao = 1.0;
 
-    // --- PENALIDADE DE CHUVA ---
-    if (chuva_ativa && pneu_atual == "normal") {
-        max_speed_atual = max_speed * 0.65;
-        turn_speed = turn_speed_original * 0.7;
+    // --- VERIFICAÇÃO DE ESTADO ---
+    if (falha_motor) {
+        // [ERROU O QUIZ] Prioridade Absoluta: O carro fica extremamente lento e pesado
+        max_speed_atual = max_speed * 0.25; // Reduz a velocidade para 25% da original
+        turn_speed = turn_speed_original * 0.5; // Direção pesada
+        _fator_aceleracao = 0.3;
+        
+        // Efeito visual de falha mecânica (Fumo Negro denso)
+        if (object_exists(obj_fumo)) {
+            repeat(2) {
+                var _fumo_motor = instance_create_depth(x + irandom_range(-4,4), y + irandom_range(-4,4), depth - 2, obj_fumo);
+                _fumo_motor.image_blend = c_dkgray; 
+            }
+        }
+    } 
+    else {
+        // [CONDUÇÃO NORMAL] Aplica a física real e cruzada dos pneus
+        if (chuva_ativa) {
+            if (pneu_atual == "normal") {
+                // Pneu Incorreto na Chuva: Perda de tração e derrapagem agressiva
+                max_speed_atual = max_speed * 0.50;
+                turn_speed = turn_speed_original * 0.6;
+                _fator_aceleracao = 0.4; 
+                
+                if (abs(vel) > 1.0) {
+                    slip_angle += ((_left ? 1 : -1) + sin(current_time * 0.05)) * 2.8;
+                    slip_angle = clamp(slip_angle, -35, 35);
+                }
+            } else {
+                // Pneu Correto na Chuva: Direção e estabilidade normais
+                max_speed_atual = max_speed * 0.95;
+                turn_speed = turn_speed_original;
+                slip_angle = lerp(slip_angle, 0, 0.2);
+            }
+        } else {
+            // PISTA SECA
+            if (pneu_atual == "chuva") {
+                // Pneu de Chuva no Seco: Sobreaquece, prende o carro e desgasta
+                max_speed_atual = max_speed * 0.60; 
+                turn_speed = turn_speed_original * 0.5; 
+                _fator_aceleracao = 0.6;
+                slip_angle = lerp(slip_angle, 0, 0.3);
+                
+                if (current_time mod 60 < 10 && object_exists(obj_fumo)) {
+                    var _f = instance_create_depth(x, y, depth - 1, obj_fumo);
+                    _f.image_blend = c_gray; // Fumo cinza de pneu a queimar
+                }
+            } else {
+                // Pneu Correto no Seco: Desempenho Máximo e Perfeito
+                slip_angle = lerp(slip_angle, 0, 0.25);
+            }
+        }
     }
 
     // --- ACELERAÇÃO ---
     if (_up && combustivel > 0) {
-        vel = min(vel + accel, max_speed_atual);
+        vel = min(vel + (accel * _fator_aceleracao), max_speed_atual);
     } else if (_down) {
         vel = max(vel - accel, -2);
     } else {
@@ -31,19 +80,15 @@ if (pode_mover && !em_pergunta && !aguardando_reboque) {
         if (vel < 0) vel = min(0, vel + friction_power);
     }
 
+    // Se o carro for travado por uma velocidade máxima menor atual (ex: ao errar a pergunta)
+    if (vel > max_speed_atual) vel = lerp(vel, max_speed_atual, 0.1);
+
     // --- COMBUSTÍVEL ---
-    if (abs(vel) > 0.2) {
-        combustivel -= 0.05;
-    }
+    if (abs(vel) > 0.2) combustivel -= 0.05;
 
     if (combustivel <= 0) {
-        combustivel = 0;
-        vel = 0;
-        pode_mover = false;
-        aguardando_reboque = true;
-        if (instance_exists(obj_hud)) {
-            obj_hud.aguardando_reboque = true;
-        }
+        combustivel = 0; vel = 0; pode_mover = false; aguardando_reboque = true;
+        if (instance_exists(obj_hud)) obj_hud.aguardando_reboque = true;
     }
 
     // --- ROTAÇÃO ---
@@ -54,28 +99,16 @@ if (pode_mover && !em_pergunta && !aguardando_reboque) {
         if (_right) image_angle -= turn_speed * _dir_sinal;
         if (place_meeting(x, y, obj_parede)) image_angle = _old_angle;
     }
-    direction = image_angle;
-
-    // --- DERRAPAGEM NA CHUVA ---
-if (chuva_ativa && pneu_atual == "normal" && abs(vel) > 1.5) {
-    var _fator_vel = clamp(abs(vel) / max_speed_atual, 0, 1);
-    var _input_lateral = ((_left ? 1 : 0) - (_right ? 1 : 0)) * sign(vel);
-    slip_angle += _input_lateral * 1.8 * _fator_vel;
-    slip_angle = lerp(slip_angle, 0, 0.12);
-    slip_angle = clamp(slip_angle, -15, 15);
+    
     direction = image_angle + slip_angle;
 
-    // Fumo de derrapagem a cada 8 frames
-    if (current_time mod 120 < 16 && object_exists(obj_fumo)) {
-        var _f = instance_create_depth(x, y, depth - 1, obj_fumo);
-        _f.image_blend = c_aqua; // sinaliza chuva
+    // --- SPRAY DE ÁGUA NA CHUVA (Apenas se NÃO estiver com falha no motor) ---
+    if (chuva_ativa && abs(vel) > 1.2 && !falha_motor && object_exists(obj_fumo)) {
+        var _f = instance_create_depth(x - lengthdir_x(8, image_angle), y - lengthdir_y(8, image_angle), depth - 1, obj_fumo);
+        _f.image_blend = c_aqua;
     }
-} else {
-    slip_angle = lerp(slip_angle, 0, 0.25);
-    direction = image_angle + slip_angle;
-}
 
-    // --- MOVIMENTO PIXEL-A-PIXEL ---
+    // --- MOVIMENTO E COLISÕES PIXEL-A-PIXEL ---
     var _vx = lengthdir_x(vel, direction);
     var _vy = lengthdir_y(vel, direction);
     var _passos = max(1, ceil(abs(vel)));
@@ -90,69 +123,19 @@ if (chuva_ativa && pneu_atual == "normal" && abs(vel) > 1.5) {
         y += _dy;
     }
 
-    // --- SEGURANÇA CONTRA PAREDES ---
-    if (place_meeting(x, y, obj_parede)) {
-        x -= lengthdir_x(vel, direction);
-        y -= lengthdir_y(vel, direction);
-        vel = 0;
-        slip_angle = 0;
-    }
-
-    // --- META ---
-    if (place_meeting(x, y, obj_meta)) {
-        if (!passou_meta) passou_meta = true;
-    } else {
-        passou_meta = false;
-    }
-
     // --- PIT STOP ---
     if (vel < 0.8 && place_meeting(x, y, obj_pit)) {
-
-        if (combustivel < combustivel_maximo) {
-            combustivel = min(combustivel + 1.5, combustivel_maximo);
-        }
-
-        // Invalida a volta atual — tem de passar pela meta de novo
+        if (combustivel < combustivel_maximo) combustivel = min(combustivel + 1.5, combustivel_maximo);
         if (instance_exists(obj_hud) && !saiu_do_pit) {
             obj_hud.pode_contar_volta = false;
             obj_hud.passou_checkpoint = false;
             saiu_do_pit = true;
-            show_debug_message("PIT: volta invalidada, passa pela meta para recomeçar.");
-        }
-
-        if (instance_exists(obj_hud)) {
-            if (keyboard_check_pressed(ord("1")) && obj_hud.moedas >= 50) {
-                obj_hud.moedas -= 50;
-                max_speed += 0.5;
-                max_speed_base = max_speed;
-                max_speed_atual = max_speed;
-            }
-            if (keyboard_check_pressed(ord("2")) && obj_hud.moedas >= 50) {
-                obj_hud.moedas -= 50;
-                accel += 0.05;
-            }
-            if (keyboard_check_pressed(ord("3")) && obj_hud.moedas >= 50 && pneu_atual == "normal") {
-                obj_hud.moedas -= 50;
-                pneu_atual = "chuva";
-            }
         }
     } else {
         saiu_do_pit = false;
     }
-
 } else {
     vel = 0;
-}
-
-// --- SPRAY DE ÁGUA NA CHUVA ---
-if (chuva_ativa && abs(vel) > 1.5 && object_exists(obj_fumo)) {
-    repeat (3) {
-        var _f = instance_create_depth(
-            x - lengthdir_x(10, image_angle) + irandom_range(-4, 4),
-            y - lengthdir_y(10, image_angle) + irandom_range(-4, 4),
-            depth - 1, obj_fumo
-        );
-    }
 }
 
 speed = 0;

@@ -1,6 +1,7 @@
 {
   "FolderOrderSettings":[
     {"name":"Fonts","order":5,"path":"folders/Fonts.yy",},
+    {"name":"Sounds","order":6,"path":"folders/Sounds.yy",},
     {"name":"objects","order":1,"path":"folders/objects.yy",},
     {"name":"sprites","order":2,"path":"folders/sprites.yy",},
   ],
@@ -20,6 +21,7 @@
     {"name":"obj_spawn_reboque","order":13,"path":"objects/obj_spawn_reboque/obj_spawn_reboque.yy",},
     {"name":"obj_spawner","order":6,"path":"objects/obj_spawner/obj_spawner.yy",},
     {"name":"Room_menu","order":3,"path":"rooms/Room_menu/Room_menu.yy",},
+    {"name":"snd_menuPrincipal","order":1,"path":"sounds/snd_menuPrincipal/snd_menuPrincipal.yy",},
     {"name":"spr_background_menu","order":11,"path":"sprites/spr_background_menu/spr_background_menu.yy",},
     {"name":"spr_checkpoint","order":9,"path":"sprites/spr_checkpoint/spr_checkpoint.yy",},
     {"name":"spr_chuva","order":10,"path":"sprites/spr_chuva/spr_chuva.yy",},

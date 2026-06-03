@@ -57,7 +57,7 @@ draw_set_color(c_white);
 var _linhas_guia = [
     "- SETAS / WASD -> Conduzir o veículo",
     "- TECLA [E]    -> Chamar Reboque (Custo: 80 moedas)",
-    "- TECLA [1]/[2] -> Upgrades dentro do Pit Stop",
+    "- TECLA [1]/[2]/[3] -> Upgrades dentro do Pit Stop",
     "",
     "COMO JOGAR:",
     "  Passa no Checkpoint a meio da pista antes de cruzar",

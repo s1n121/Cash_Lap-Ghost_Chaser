@@ -7,7 +7,7 @@ tempo_melhor_volta = -1;
 tempo_volta_atual = 0;
 shake_intensidade = 0;
 meta_pronta_para_primeira_volta = false;
-moedas = 0;
+moedas = 99999;
 passou_checkpoint = false;
 tempo_minimo_volta = 15;
 primeira_volta = true;
@@ -33,11 +33,11 @@ estado_clima = 0;
 // Primeiros 90 segundos de jogo totalmente secos (90 * room_speed)
 chuva_timer = room_speed * 90; 
 
-// --- REBOQUE & SEGURO ---
+// --- REBOQUE & SEGURO ATUALIZADOS ---
 aguardando_reboque = false;
 custo_reboque = 80;
-tem_seguro = false;      // Nova variável: controla se comprou o seguro
-custo_seguro = 120;     // Proposta: custo de $120
+tem_seguro = false;      // Controla se comprou o seguro
+custo_seguro = 100;      // Reduzido para $100 conforme solicitado
 
 // --- RECORDE ---
 ini_open("recorde.ini");
@@ -63,19 +63,19 @@ resposta_correta = 0;
 // --- PERGUNTAS COM ACENTOS ATIVADOS ---
 perguntas_lista = [
     ["O que é o Orçamento Familiar?", "Registo de ganhos e gastos", "Um plano de férias", "Um tipo de empréstimo", 1],
-    ["O que é uma Necessidade?", "Comprar videojogos", "Alimentação e habitação", "Ir ao cinema", 2],
+    ["O que é uma Necessidade?", "Comprar videojogos", "Ir ao cinema", "Alimentação e habitação", 3],
     ["O que significa Poupança?", "Gastar tudo hoje", "Guardar dinheiro para o futuro", "Pedir emprestado", 2],
-    ["O que é um Desejo?", "Beber água", "Ter o telemóvel mais caro", "Ter uma casa", 2],
+    ["O que é um Desejo?", "Ter o telemóvel mais caro", "Beber água", "Ter uma casa", 1],
     ["O que são Rendimentos?", "Dinheiro que sai", "Dinheiro que entra", "Dívidas ao banco", 2],
-    ["O que é o Fundo de Emergência?", "Dinheiro para festas", "Dinheiro para imprevistos", "Dinheiro para investir", 2],
+    ["O que é o Fundo de Emergência?", "Dinheiro para festas", "Dinheiro para investir","Dinheiro para imprevistos", 3],
     ["O que é a Inflação?", "Subida geral dos preços", "Descida dos preços", "Ganhar o Euromilhões", 1],
     ["Qual a vantagem de comparar preços?", "Gastar mais", "Poupar dinheiro", "Perder tempo", 2],
-    ["O que é um Juro?", "Um bónus do governo", "O custo do dinheiro emprestado", "Um tipo de conta", 2],
+    ["O que é um Juro?","O custo do dinheiro emprestado", "Um bónus do governo", "Um tipo de conta", 1],
     ["O que é o Multibanco?", "Uma conta poupança", "Um sistema de pagamentos", "Um presente do banco", 2],
     ["O que é um Crédito?", "Dinheiro oferecido", "Dinheiro emprestado", "Um prémio", 2],
     ["Comprar a prestações é...", "Mais barato", "Mais caro pelos juros", "Grátis", 2],
     ["O que é o IBAN?", "Identificação da conta", "Um código de jogo", "O nome do banco", 1],
-    ["Quem deve fazer um orçamento?", "Apenas os ricos", "Todas as famílias", "Apenas os bancos", 2],
+    ["Quem deve fazer um orçamento?", "Apenas os ricos", "Apenas os bancos", "Todas as famílias", 3],
     ["Qual a regra de ouro da poupança?", "Gastar primeiro", "Pagar a si mesmo primeiro", "Não poupar", 2]
 ];
 
