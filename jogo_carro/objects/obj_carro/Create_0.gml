@@ -1,5 +1,5 @@
 // --- Valores de Condução ---
-max_speed = 5;
+max_speed = 4;
 max_speed_base = max_speed;
 falha_motor = false;
 max_speed_atual = max_speed;
