@@ -7,37 +7,42 @@ tempo_melhor_volta = -1;
 tempo_volta_atual = 0;
 shake_intensidade = 0;
 meta_pronta_para_primeira_volta = false;
-moedas = 99999;
+moedas = 9999;
 passou_checkpoint = false;
 tempo_minimo_volta = 15;
 primeira_volta = true;
+
+// --- PIT STOP ---
+voltando_do_pit = false;
+aviso_pit_timer = 0;
+
+// --- PAUSA ---
+jogo_pausado = false;
+pausa_opcao = 0;
 
 // --- GOTAS DE CHUVA ---
 gotas_chuva = array_create(120);
 for (var _i = 0; _i < 120; _i++) {
     gotas_chuva[_i] = [
-        irandom(1366),  // x
-        irandom(768),   // y
-        4 + irandom(8), // comprimento
-        2 + irandom(3)  // velocidade
+        irandom(1366),
+        irandom(768),
+        4 + irandom(8),
+        2 + irandom(3)
     ];
 }
 
-// --- CLIMA REESTRUTURADO ---
+// --- CLIMA ---
 chuva_ativa = false;
 spr_chuva_alpha = 0;
 chuva_duracao = 0;
+estado_clima = 0;
+chuva_timer = room_speed * 55;
 
-// Estado 0 = Calmaria Inicial | Estado 1 = Ciclo Aleatório Ativo
-estado_clima = 0; 
-// Primeiros 90 segundos de jogo totalmente secos (90 * room_speed)
-chuva_timer = room_speed * 90; 
-
-// --- REBOQUE & SEGURO ATUALIZADOS ---
+// --- REBOQUE & SEGURO ---
 aguardando_reboque = false;
 custo_reboque = 80;
-tem_seguro = false;      // Controla se comprou o seguro
-custo_seguro = 100;      // Reduzido para $100 conforme solicitado
+tem_seguro = false;
+custo_seguro = 100;
 
 // --- RECORDE ---
 ini_open("recorde.ini");
@@ -60,7 +65,7 @@ texto_exibir = "";
 opcoes = ["", "", ""];
 resposta_correta = 0;
 
-// --- PERGUNTAS COM ACENTOS ATIVADOS ---
+// --- PERGUNTAS ---
 perguntas_lista = [
     ["O que é o Orçamento Familiar?", "Registo de ganhos e gastos", "Um plano de férias", "Um tipo de empréstimo", 1],
     ["O que é uma Necessidade?", "Comprar videojogos", "Ir ao cinema", "Alimentação e habitação", 3],
@@ -80,27 +85,17 @@ perguntas_lista = [
 ];
 
 randomizar_perguntas = function(_quantidade) {
-    with (obj_pergunta) {
-        instance_destroy();
-    }
-    
+    with (obj_pergunta) { instance_destroy(); }
     array_shuffle_ext(perguntas_lista);
-    
     var _lista_pontos = [];
-    with (obj_spawn_ponto) {
-        array_push(_lista_pontos, id);
-    }
+    with (obj_spawn_ponto) { array_push(_lista_pontos, id); }
     array_shuffle_ext(_lista_pontos);
-    
     var _limite = min(_quantidade, array_length(_lista_pontos));
     var _camada = layer_get_id("Instance_pontos_perguntas");
-    
     for (var i = 0; i < _limite; i++) {
         var _ponto = _lista_pontos[i];
         var _inst = instance_create_layer(_ponto.x, _ponto.y, _camada, obj_pergunta);
         _inst.dados_pergunta = perguntas_lista[i mod array_length(perguntas_lista)];
-        
-        show_debug_message("SPAWNER: Pergunta criada em X=" + string(_ponto.x) + " Y=" + string(_ponto.y));
     }
 }
 

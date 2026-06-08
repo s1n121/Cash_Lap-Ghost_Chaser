@@ -2,18 +2,101 @@
 var _gui_w = display_get_gui_width();
 var _gui_h = display_get_gui_height();
 
-// Garante uma fonte válida para evitar flutuações de tamanho no GameMaker
 if (font_exists(fnt_perguntas)) {
     draw_set_font(fnt_perguntas);
 } else {
     draw_set_font(-1);
 }
 
-// Definição de escala base adaptativa para evitar encolhimento do texto
 var _scale_txt  = 0.85;
 var _scale_sub  = 0.75;
 var _scale_mini = 0.65;
 
+// =====================================================
+// ECRÃ DE PAUSA
+// =====================================================
+if (jogo_pausado) {
+    draw_set_color(c_black);
+    draw_set_alpha(0.78);
+    draw_rectangle(0, 0, _gui_w, _gui_h, false);
+    draw_set_alpha(1);
+
+    var _cx = _gui_w / 2;
+    var _cy = _gui_h / 2;
+    var _pw = 420;
+
+    // Painel central
+    draw_set_color(make_color_rgb(10, 20, 35));
+    draw_set_alpha(0.97);
+    draw_roundrect_ext(_cx - _pw, _cy - 320, _cx + _pw, _cy + 310, 14, 14, false);
+    draw_set_alpha(1);
+
+    // Cabeçalho
+    draw_set_color(c_aqua);
+    draw_roundrect_ext(_cx - _pw, _cy - 320, _cx + _pw, _cy - 278, 14, 14, false);
+    draw_set_halign(fa_center);
+    draw_set_color(c_black);
+    draw_text_transformed(_cx, _cy - 308, "JOGO PAUSADO", 1.0, 1.0, 0);
+
+    // Botões
+    var _opcoes_txt = ["▶  CONTINUAR", "⌂  SAIR PARA O MENU"];
+    var _btn_y = [_cy - 248, _cy - 192];
+    var _btn_cor = [c_lime, c_red];
+
+    for (var i = 0; i < 2; i++) {
+        var _sel = (i == pausa_opcao);
+        draw_set_color(_sel ? _btn_cor[i] : make_color_rgb(50, 65, 80));
+        draw_set_alpha(_sel ? 1 : 0.7);
+        draw_roundrect_ext(_cx - 200, _btn_y[i], _cx + 200, _btn_y[i] + 42, 8, 8, false);
+        draw_set_alpha(1);
+        draw_set_color(_sel ? c_black : c_white);
+        draw_text_transformed(_cx, _btn_y[i] + 12, _opcoes_txt[i], _scale_txt, _scale_txt, 0);
+    }
+
+    draw_set_halign(fa_center);
+    draw_set_color(c_gray);
+    draw_text_transformed(_cx, _cy - 138, "setas para navegar   ENTER para confirmar   ESC para retomar", _scale_mini, _scale_mini, 0);
+
+    // Separador
+    draw_set_color(c_aqua);
+    draw_set_alpha(0.35);
+    draw_line(_cx - _pw + 20, _cy - 115, _cx + _pw - 20, _cy - 115);
+    draw_set_alpha(1);
+
+    // === REGRAS — alinhamento à esquerda a partir daqui ===
+    draw_set_halign(fa_left);
+    var _rx = _cx - _pw + 30; // margem esquerda dentro do painel
+
+    draw_set_color(make_color_rgb(150, 220, 0));
+    draw_text_transformed(_rx, _cy - 100, "CONTROLO E REGRAS:", _scale_sub, _scale_sub, 0);
+
+    var _regras = [
+        "- SETAS / WASD  →  Conduzir o veículo",
+        "- TECLA [E]     →  Chamar Reboque ($80, gratuito com seguro)",
+        "- TECLA [1]     →  Pit: Trocar para Pneu Normal ($30)",
+        "- TECLA [2]     →  Pit: Trocar para Pneu de Chuva ($50)",
+        "- TECLA [3]     →  Pit: Contratar Seguro Automóvel ($100)",
+        "",
+        "COMO JOGAR:",
+        "  Passa no Checkpoint antes de cruzar a Meta para a volta ser válida.",
+        "  Se entrares no Pit, tens de completar o resto da volta até à Meta.",
+        "  Essa passagem pela Meta não conta — só a volta seguinte é válida.",
+        "  Responde aos Quizes para ganhar $10 de bónus por resposta certa.",
+        "",
+        "  CHUVA:  Pneus Chuva dão vantagem na pista molhada.",
+        "  SECO:   Pneus Normais (Slick) têm desempenho máximo."
+    ];
+
+    draw_set_color(c_white);
+    for (var j = 0; j < array_length(_regras); j++) {
+        draw_text_transformed(_rx, _cy - 72 + (j * 22), _regras[j], _scale_mini, _scale_mini, 0);
+    }
+
+    draw_set_halign(fa_left);
+    draw_set_color(c_white);
+    draw_set_alpha(1);
+    exit;
+}
 // =====================================================
 // CHUVA VISUAL PROGRAMÁTICA
 // =====================================================
@@ -22,7 +105,6 @@ if (chuva_ativa || spr_chuva_alpha > 0) {
     var _cor_vinheta = make_color_rgb(10, 30, 60);
     var _grad = 200;
 
-    // Vinheta azul nas bordas
     draw_set_color(_cor_vinheta);
     for (var _i = 0; _i < _grad; _i++) {
         var _alpha_borda = _a * 0.55 * (1 - _i / _grad);
@@ -34,7 +116,6 @@ if (chuva_ativa || spr_chuva_alpha > 0) {
         draw_line(0, _gui_h - _i, _gui_w, _gui_h - _i);
     }
 
-    // Gotas
     draw_set_color(make_color_rgb(180, 220, 255));
     for (var _i = 0; _i < 120; _i++) {
         var _gx = gotas_chuva[_i][0];
@@ -51,8 +132,8 @@ if (chuva_ativa || spr_chuva_alpha > 0) {
 // PAINEL SUPERIOR ESQUERDO — INFO CORRIDA
 // =====================================================
 draw_set_color(c_black);
-draw_set_alpha(0.65); // Ligeiramente mais escuro para melhorar contraste
-draw_roundrect_ext(10, 10, 290, 205, 8, 8, false); // Aumentado espaço para não espremer
+draw_set_alpha(0.65);
+draw_roundrect_ext(10, 10, 290, 205, 8, 8, false);
 draw_set_alpha(1);
 
 draw_set_color(c_aqua);
@@ -107,7 +188,7 @@ if (instance_exists(obj_carro)) {
 }
 
 // =====================================================
-// CARTEIRA — CANTO SUPERIOR DIREITO
+// CARTEIRA
 // =====================================================
 draw_set_color(c_black);
 draw_set_alpha(0.55);
@@ -135,7 +216,7 @@ if (chuva_ativa) {
 }
 
 // =====================================================
-// PIT STOP — CENTRAL DE LOGÍSTICA REESTRUTURADA [1], [2], [3]
+// PIT STOP
 // =====================================================
 if (instance_exists(obj_carro)) {
     var _no_pit = false;
@@ -144,16 +225,14 @@ if (instance_exists(obj_carro)) {
     if (_no_pit && obj_carro.vel < 0.8) {
         var _lx = _gui_w/2;
         var _ly = _gui_h - 250; 
-        var _pw = 380; // Alargado ligeiramente para comportar o texto perfeitamente
+        var _pw = 380;
         var _ph = 190; 
 
-        // Fundo do painel
         draw_set_color(c_black);
         draw_set_alpha(0.94);
         draw_roundrect_ext(_lx - _pw, _ly, _lx + _pw, _ly + _ph, 10, 10, false);
         draw_set_alpha(1);
 
-        // Cabeçalho
         draw_set_color(make_color_rgb(15, 45, 65));
         draw_roundrect_ext(_lx - _pw, _ly, _lx + _pw, _ly + 32, 10, 10, false);
 
@@ -164,7 +243,6 @@ if (instance_exists(obj_carro)) {
         draw_set_color(c_white);
         draw_text_transformed(_lx, _ly + 38, "Saldo Atual Disponível: $" + string(moedas), _scale_sub, _scale_sub, 0);
 
-        // --- [OPÇÃO 1] Pneu Normal ($30) ---
         var _is_normal = (obj_carro.pneu_atual == "normal");
         var _tem1 = (moedas >= 30 && !_is_normal);
         draw_set_color(_is_normal ? c_lime : (_tem1 ? c_white : c_dkgray));
@@ -173,7 +251,6 @@ if (instance_exists(obj_carro)) {
         draw_set_color(c_black);
         draw_text_transformed(_lx - (_pw/2) - 5, _ly + 74, _is_normal ? "✓ PNEU SLICK ATIVO" : "[1] PNEU NORMAL  $30", _scale_sub, _scale_sub, 0);
 
-        // --- [OPÇÃO 2] Pneu Chuva ($50) ---
         var _is_chuva = (obj_carro.pneu_atual == "chuva");
         var _tem2 = (moedas >= 50 && !_is_chuva);
         draw_set_color(_is_chuva ? c_lime : (_tem2 ? c_aqua : c_dkgray));
@@ -182,7 +259,6 @@ if (instance_exists(obj_carro)) {
         draw_set_color(c_black);
         draw_text_transformed(_lx + (_pw/2) + 5, _ly + 74, _is_chuva ? "✓ PNEU CHUVA ATIVO" : "[2] PNEU CHUVA  $50", _scale_sub, _scale_sub, 0);
 
-        // --- [OPÇÃO 3] SEGURO AUTOMÓVEL ($100) ---
         var _tem3 = (moedas >= custo_seguro && !tem_seguro);
         draw_set_color(tem_seguro ? c_lime : (_tem3 ? make_color_rgb(255, 130, 40) : c_dkgray));
         draw_set_alpha(tem_seguro || _tem3 ? 1 : 0.5);
@@ -191,7 +267,6 @@ if (instance_exists(obj_carro)) {
         var _str_seguro = tem_seguro ? "✓ APÓLICE AUTOMÓVEL ATIVA: REBOQUES COBERTOS ($0)" : "[3] CONTRATAR APÓLICE DE SEGURO AUTOMÓVEL  $100";
         draw_text_transformed(_lx, _ly + 124, _str_seguro, _scale_sub, _scale_sub, 0);
 
-        // Rodapé Informativo
         draw_set_alpha(1);
         draw_set_color(c_gray);
         draw_text_transformed(_lx, _ly + 168, "A escolha correta de pneus previne acidentes e a perda total de tração.", _scale_mini, _scale_mini, 0);
@@ -227,7 +302,7 @@ if (aguardando_reboque) {
 }
 
 // =====================================================
-// QUIZ ATUALIZADO (ALERTA DE FALHA NO MOTOR)
+// QUIZ
 // =====================================================
 if (pergunta_ativa) {
     var _qx = 80;
@@ -256,7 +331,6 @@ if (pergunta_ativa) {
         draw_set_alpha(0.75);
         draw_roundrect_ext(_qx + 16, _oy, _qw - 16, _oy + 42, 6, 6, false);
         draw_set_alpha(1);
-        
         draw_set_color(c_aqua);
         draw_text_transformed(_qx + 28, _oy + 12, _ops[_i][0] + ")", _scale_txt, _scale_txt, 0);
         draw_set_color(c_white);
@@ -265,7 +339,36 @@ if (pergunta_ativa) {
 }
 
 // =====================================================
-// RESET FINAL DE CONTEXTO GRAPHICO
+// AVISO PÓS-PIT
+// =====================================================
+if (voltando_do_pit || aviso_pit_timer > 0) {
+    var _pulse = 0.7 + 0.3 * sin(current_time * 0.008);
+    var _msg = voltando_do_pit
+        ? "⚑  PIT CONCLUÍDO — Complete esta volta até à meta para reiniciar"
+        : "✓  Volta de regresso registada — Nova volta em curso!";
+    var _cor_aviso = voltando_do_pit ? make_color_rgb(255, 180, 0) : c_lime;
+
+    draw_set_halign(fa_center);
+    draw_set_color(c_black);
+    draw_set_alpha(0.6);
+    draw_roundrect_ext(_gui_w/2 - 360, _gui_h - 60, _gui_w/2 + 360, _gui_h - 18, 6, 6, false);
+    draw_set_alpha(_pulse);
+    draw_set_color(_cor_aviso);
+    draw_text_transformed(_gui_w/2, _gui_h - 46, _msg, _scale_sub, _scale_sub, 0);
+    draw_set_alpha(1);
+    draw_set_halign(fa_left);
+}
+
+// =====================================================
+// DICA ESC
+// =====================================================
+draw_set_color(c_dkgray);
+draw_set_alpha(0.7);
+draw_text_transformed(_gui_w - 150, _gui_h - 24, "ESC = Pausa", _scale_mini, _scale_mini, 0);
+draw_set_alpha(1);
+
+// =====================================================
+// RESET FINAL
 // =====================================================
 draw_set_color(c_white);
 draw_set_alpha(1);

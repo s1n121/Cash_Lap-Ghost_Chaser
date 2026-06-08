@@ -1,3 +1,10 @@
+// Congela o carro se o jogo estiver pausado
+if (instance_exists(obj_hud) && obj_hud.jogo_pausado) {
+    vel = 0;
+    speed = 0;
+    exit;
+}
+
 // --- 1. INPUTS ---
 var _up    = keyboard_check(vk_up)    || keyboard_check(ord("W"));
 var _down  = keyboard_check(vk_down)  || keyboard_check(ord("S"));
@@ -129,6 +136,7 @@ if (pode_mover && !em_pergunta && !aguardando_reboque) {
         if (instance_exists(obj_hud) && !saiu_do_pit) {
             obj_hud.pode_contar_volta = false;
             obj_hud.passou_checkpoint = false;
+            obj_hud.voltando_do_pit = true;   // <<< LINHA NOVA
             saiu_do_pit = true;
         }
     } else {
