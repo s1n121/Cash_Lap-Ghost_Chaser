@@ -20,29 +20,39 @@ if (jogo_pausado) {
             room_goto(Room_menu);
         }
     }
-    exit; // Congela tudo o resto enquanto pausado
+    exit;
 }
 
 // =======================================================
 
 var _volta_valida = (passou_checkpoint && tempo_volta_atual >= tempo_minimo_volta) || primeira_volta;
 
-// --- 1. CRONÓMETRO ---
+// Verifica se o carro está no pit (para pausar o timer)
+var _em_pit = false;
+if (instance_exists(obj_carro)) {
+    with(obj_carro) { if (vel < 0.8 && place_meeting(x, y, obj_pit)) _em_pit = true; }
+}
+
+// --- 1. CRONÓMETRO (pausa no pit) ---
 if (!corrida_comecou && instance_exists(obj_carro) && obj_carro.vel > 0.1) {
     corrida_comecou = true;
 }
 
 if (corrida_comecou && instance_exists(obj_carro) && obj_carro.pode_mover) {
     tempo_decorrido += 1 / room_speed;
-    tempo_volta_atual += 1 / room_speed;
 
-    ds_list_add(lista_x_atual, obj_carro.x);
-    ds_list_add(lista_y_atual, obj_carro.y);
-    ds_list_add(lista_angle_atual, obj_carro.image_angle);
+    // O timer da volta pausa enquanto o carro está no pit
+    if (!_em_pit) {
+        tempo_volta_atual += 1 / room_speed;
 
-    if (global.tem_fantasma) {
-        frame_atual += 1;
-        if (frame_atual >= ds_list_size(global.fantasma_gravar_x)) frame_atual = 0;
+        ds_list_add(lista_x_atual, obj_carro.x);
+        ds_list_add(lista_y_atual, obj_carro.y);
+        ds_list_add(lista_angle_atual, obj_carro.image_angle);
+
+        if (global.tem_fantasma) {
+            frame_atual += 1;
+            if (frame_atual >= ds_list_size(global.fantasma_gravar_x)) frame_atual = 0;
+        }
     }
 }
 
@@ -70,23 +80,32 @@ if (aguardando_reboque && keyboard_check_pressed(ord("E"))) {
 }
 
 // --- 3. LOJA PIT STOP ---
-if (instance_exists(obj_carro)) {
-    var _no_pit = false;
-    with(obj_carro) { if (place_meeting(x, y, obj_pit)) _no_pit = true; }
+if (instance_exists(obj_carro) && _em_pit) {
 
-    if (_no_pit && obj_carro.vel < 0.8) {
-        if (keyboard_check_pressed(ord("1")) && moedas >= 30 && obj_carro.pneu_atual != "normal") {
-            moedas -= 30;
-            obj_carro.pneu_atual = "normal";
-        }
-        if (keyboard_check_pressed(ord("2")) && moedas >= 50 && obj_carro.pneu_atual != "chuva") {
-            moedas -= 50;
-            obj_carro.pneu_atual = "chuva";
-        }
-        if (keyboard_check_pressed(ord("3")) && moedas >= custo_seguro && !tem_seguro) {
-            moedas -= custo_seguro;
-            tem_seguro = true;
-        }
+    // [1] Pneu Normal ($30)
+    if (keyboard_check_pressed(ord("1")) && moedas >= 30 && obj_carro.pneu_atual != "normal") {
+        moedas -= 30;
+        obj_carro.pneu_atual = "normal";
+    }
+
+    // [2] Pneu Chuva ($50)
+    if (keyboard_check_pressed(ord("2")) && moedas >= 50 && obj_carro.pneu_atual != "chuva") {
+        moedas -= 50;
+        obj_carro.pneu_atual = "chuva";
+    }
+
+    // [3] Seguro ($100)
+    if (keyboard_check_pressed(ord("3")) && moedas >= custo_seguro && !tem_seguro) {
+        moedas -= custo_seguro;
+        tem_seguro = true;
+    }
+
+    // [4] Upgrade Tanque ($60) — aumenta combustível máximo de 100 para 150
+    if (keyboard_check_pressed(ord("4")) && moedas >= custo_upgrade_tanque && !upgrade_tanque) {
+        moedas -= custo_upgrade_tanque;
+        upgrade_tanque = true;
+        obj_carro.combustivel_maximo = 150;
+        obj_carro.combustivel = obj_carro.combustivel_maximo; // abastece logo
     }
 }
 
@@ -127,61 +146,40 @@ if (shake_intensidade > 0) {
     camera_set_view_pos(view_camera[0], 0, 0);
 }
 
-// Decrementa aviso pit
-if (aviso_pit_timer > 0) aviso_pit_timer -= 1;
-
 // --- 6. META ---
 if (instance_exists(obj_carro)) {
     var _colidiu_com_meta = false;
     with(obj_carro) { if (place_meeting(x, y, obj_meta)) _colidiu_com_meta = true; }
 
-    // Só reativa pode_contar_volta quando sai da meta E não está a regressar do pit
-    // (sem esta condição, reativava imediatamente quando o carro saía do pit)
-    if (!_colidiu_com_meta && !pode_contar_volta && !voltando_do_pit) {
-        pode_contar_volta = true;
-    }
+    if (!_colidiu_com_meta && !pode_contar_volta) pode_contar_volta = true;
 
-    if (_colidiu_com_meta) {
-        // === REGRESSO DO PIT: esta passagem NÃO conta como volta ===
-        if (voltando_do_pit) {
-            voltando_do_pit = false;
-            passou_checkpoint = false;
-            pode_contar_volta = false;
-            tempo_volta_atual = 0;
-            aviso_pit_timer = room_speed * 4;
+    if (_colidiu_com_meta && pode_contar_volta) {
+        if (_volta_valida) {
+            primeira_volta = false;
+            if (ds_list_size(lista_x_atual) > 0) {
+                if (tempo_melhor_volta == -1 || tempo_volta_atual < tempo_melhor_volta) {
+                    tempo_melhor_volta = tempo_volta_atual;
+                    ds_list_clear(global.fantasma_gravar_x);
+                    ds_list_clear(global.fantasma_gravar_y);
+                    ds_list_clear(global.fantasma_gravar_angle);
+                    ds_list_copy(global.fantasma_gravar_x, lista_x_atual);
+                    ds_list_copy(global.fantasma_gravar_y, lista_y_atual);
+                    ds_list_copy(global.fantasma_gravar_angle, lista_angle_atual);
+                    global.tem_fantasma = true;
+                }
+            }
+            voltas_atuais += 1;
             ds_list_clear(lista_x_atual);
             ds_list_clear(lista_y_atual);
             ds_list_clear(lista_angle_atual);
-        }
-        // === VOLTA NORMAL ===
-        else if (pode_contar_volta) {
-            if (_volta_valida) {
-                primeira_volta = false;
-                if (ds_list_size(lista_x_atual) > 0) {
-                    if (tempo_melhor_volta == -1 || tempo_volta_atual < tempo_melhor_volta) {
-                        tempo_melhor_volta = tempo_volta_atual;
-                        ds_list_clear(global.fantasma_gravar_x);
-                        ds_list_clear(global.fantasma_gravar_y);
-                        ds_list_clear(global.fantasma_gravar_angle);
-                        ds_list_copy(global.fantasma_gravar_x, lista_x_atual);
-                        ds_list_copy(global.fantasma_gravar_y, lista_y_atual);
-                        ds_list_copy(global.fantasma_gravar_angle, lista_angle_atual);
-                        global.tem_fantasma = true;
-                    }
-                }
-                voltas_atuais += 1;
-                ds_list_clear(lista_x_atual);
-                ds_list_clear(lista_y_atual);
-                ds_list_clear(lista_angle_atual);
-                frame_atual = 0;
-                tempo_volta_atual = 0;
-                passou_checkpoint = false;
-                pode_contar_volta = false;
-                randomizar_perguntas(5);
-            } else {
-                pode_contar_volta = false;
-                passou_checkpoint = false;
-            }
+            frame_atual = 0;
+            tempo_volta_atual = 0;
+            passou_checkpoint = false;
+            pode_contar_volta = false;
+            randomizar_perguntas(5);
+        } else {
+            pode_contar_volta = false;
+            passou_checkpoint = false;
         }
     }
 }

@@ -224,9 +224,9 @@ if (instance_exists(obj_carro)) {
 
     if (_no_pit && obj_carro.vel < 0.8) {
         var _lx = _gui_w/2;
-        var _ly = _gui_h - 250; 
-        var _pw = 380;
-        var _ph = 190; 
+        var _ly = _gui_h - 290;
+        var _pw = 390;
+        var _ph = 240;
 
         draw_set_color(c_black);
         draw_set_alpha(0.94);
@@ -238,39 +238,49 @@ if (instance_exists(obj_carro)) {
 
         draw_set_halign(fa_center);
         draw_set_color(c_aqua);
-        draw_text_transformed(_lx, _ly + 8, "PIT STOP  —  SALA DE COMANDO LOGÍSTICO", _scale_sub, _scale_sub, 0);
+        draw_text_transformed(_lx, _ly + 8, "PIT STOP  —  ⏸ TIMER PAUSADO", _scale_sub, _scale_sub, 0);
 
         draw_set_color(c_white);
-        draw_text_transformed(_lx, _ly + 38, "Saldo Atual Disponível: $" + string(moedas), _scale_sub, _scale_sub, 0);
+        draw_text_transformed(_lx, _ly + 38, "Saldo: $" + string(moedas), _scale_sub, _scale_sub, 0);
 
+        // [1] Pneu Normal
         var _is_normal = (obj_carro.pneu_atual == "normal");
         var _tem1 = (moedas >= 30 && !_is_normal);
         draw_set_color(_is_normal ? c_lime : (_tem1 ? c_white : c_dkgray));
         draw_set_alpha(_is_normal || _tem1 ? 1 : 0.5);
-        draw_roundrect_ext(_lx - _pw + 20, _ly + 65, _lx - 15, _ly + 100, 6, 6, false);
+        draw_roundrect_ext(_lx - _pw + 20, _ly + 62, _lx - 15, _ly + 97, 6, 6, false);
         draw_set_color(c_black);
-        draw_text_transformed(_lx - (_pw/2) - 5, _ly + 74, _is_normal ? "✓ PNEU SLICK ATIVO" : "[1] PNEU NORMAL  $30", _scale_sub, _scale_sub, 0);
+        draw_text_transformed(_lx - (_pw/2) - 5, _ly + 71, _is_normal ? "✓ PNEU SLICK ATIVO" : "[1] PNEU NORMAL  $30", _scale_sub, _scale_sub, 0);
 
+        // [2] Pneu Chuva
         var _is_chuva = (obj_carro.pneu_atual == "chuva");
         var _tem2 = (moedas >= 50 && !_is_chuva);
         draw_set_color(_is_chuva ? c_lime : (_tem2 ? c_aqua : c_dkgray));
         draw_set_alpha(_is_chuva || _tem2 ? 1 : 0.5);
-        draw_roundrect_ext(_lx + 15, _ly + 65, _lx + _pw - 20, _ly + 100, 6, 6, false);
+        draw_roundrect_ext(_lx + 15, _ly + 62, _lx + _pw - 20, _ly + 97, 6, 6, false);
         draw_set_color(c_black);
-        draw_text_transformed(_lx + (_pw/2) + 5, _ly + 74, _is_chuva ? "✓ PNEU CHUVA ATIVO" : "[2] PNEU CHUVA  $50", _scale_sub, _scale_sub, 0);
+        draw_text_transformed(_lx + (_pw/2) + 5, _ly + 71, _is_chuva ? "✓ PNEU CHUVA ATIVO" : "[2] PNEU CHUVA  $50", _scale_sub, _scale_sub, 0);
 
+        // [3] Seguro
         var _tem3 = (moedas >= custo_seguro && !tem_seguro);
         draw_set_color(tem_seguro ? c_lime : (_tem3 ? make_color_rgb(255, 130, 40) : c_dkgray));
         draw_set_alpha(tem_seguro || _tem3 ? 1 : 0.5);
-        draw_roundrect_ext(_lx - _pw + 20, _ly + 115, _lx + _pw - 20, _ly + 150, 6, 6, false);
+        draw_roundrect_ext(_lx - _pw + 20, _ly + 110, _lx + _pw - 20, _ly + 145, 6, 6, false);
         draw_set_color(c_black);
-        var _str_seguro = tem_seguro ? "✓ APÓLICE AUTOMÓVEL ATIVA: REBOQUES COBERTOS ($0)" : "[3] CONTRATAR APÓLICE DE SEGURO AUTOMÓVEL  $100";
-        draw_text_transformed(_lx, _ly + 124, _str_seguro, _scale_sub, _scale_sub, 0);
+        draw_text_transformed(_lx, _ly + 119, tem_seguro ? "✓ APÓLICE DE SEGURO ATIVA ($0 por reboque)" : "[3] SEGURO AUTOMÓVEL  $100", _scale_sub, _scale_sub, 0);
+
+        // [4] Upgrade Tanque
+        var _tem4 = (moedas >= custo_upgrade_tanque && !upgrade_tanque);
+        draw_set_color(upgrade_tanque ? c_lime : (_tem4 ? make_color_rgb(255, 220, 50) : c_dkgray));
+        draw_set_alpha(upgrade_tanque || _tem4 ? 1 : 0.5);
+        draw_roundrect_ext(_lx - _pw + 20, _ly + 158, _lx + _pw - 20, _ly + 193, 6, 6, false);
+        draw_set_color(c_black);
+        draw_text_transformed(_lx, _ly + 167, upgrade_tanque ? "✓ TANQUE EXTRA INSTALADO (+50% capacidade)" : "[4] UPGRADE: TANQUE EXTRA  $60", _scale_sub, _scale_sub, 0);
 
         draw_set_alpha(1);
         draw_set_color(c_gray);
-        draw_text_transformed(_lx, _ly + 168, "A escolha correta de pneus previne acidentes e a perda total de tração.", _scale_mini, _scale_mini, 0);
-        
+        draw_text_transformed(_lx, _ly + 216, "O timer da volta está pausado enquanto estiveres no pit.", _scale_mini, _scale_mini, 0);
+
         draw_set_halign(fa_left);
     }
 }

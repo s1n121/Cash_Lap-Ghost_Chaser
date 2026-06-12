@@ -12,9 +12,12 @@ passou_checkpoint = false;
 tempo_minimo_volta = 15;
 primeira_volta = true;
 
+
 // --- PIT STOP ---
-voltando_do_pit = false;
+voltando_do_pit = false;   // pode ficar mas já não é usado
 aviso_pit_timer = 0;
+upgrade_tanque = false;
+custo_upgrade_tanque = 60;
 
 // --- PAUSA ---
 jogo_pausado = false;

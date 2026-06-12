@@ -1,3 +1,4 @@
+
 if (!mostrar_pergunta) exit;
 
 var _cx = display_get_gui_width()  / 2;
