@@ -39,10 +39,9 @@ if (!corrida_comecou && instance_exists(obj_carro) && obj_carro.vel > 0.1) {
 }
 
 if (corrida_comecou && instance_exists(obj_carro) && obj_carro.pode_mover) {
-    tempo_decorrido += 1 / room_speed;
-
-    // O timer da volta pausa enquanto o carro está no pit
+    // Ambos os timers pausam no pit
     if (!_em_pit) {
+        tempo_decorrido += 1 / room_speed;
         tempo_volta_atual += 1 / room_speed;
 
         ds_list_add(lista_x_atual, obj_carro.x);
@@ -100,13 +99,14 @@ if (instance_exists(obj_carro) && _em_pit) {
         tem_seguro = true;
     }
 
-    // [4] Upgrade Tanque ($60) — aumenta combustível máximo de 100 para 150
-    if (keyboard_check_pressed(ord("4")) && moedas >= custo_upgrade_tanque && !upgrade_tanque) {
-        moedas -= custo_upgrade_tanque;
-        upgrade_tanque = true;
-        obj_carro.combustivel_maximo = 150;
-        obj_carro.combustivel = obj_carro.combustivel_maximo; // abastece logo
-    }
+    // [4] Upgrade Tanque — 3 níveis: 125L / 150L / 175L
+if (keyboard_check_pressed(ord("4")) && moedas >= custo_upgrade_tanque && fuel_upgrade_nivel < 3) {
+    moedas -= custo_upgrade_tanque;
+    fuel_upgrade_nivel += 1;
+    obj_carro.fuel_upgrade_nivel = fuel_upgrade_nivel;
+    obj_carro.combustivel_maximo = 100 + (25 * fuel_upgrade_nivel);
+    obj_carro.combustivel = obj_carro.combustivel_maximo;
+}
 }
 
 // --- 4. QUIZ ---

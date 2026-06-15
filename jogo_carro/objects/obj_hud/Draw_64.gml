@@ -70,22 +70,20 @@ if (jogo_pausado) {
     draw_set_color(make_color_rgb(150, 220, 0));
     draw_text_transformed(_rx, _cy - 100, "CONTROLO E REGRAS:", _scale_sub, _scale_sub, 0);
 
-    var _regras = [
-        "- SETAS / WASD  →  Conduzir o veículo",
-        "- TECLA [E]     →  Chamar Reboque ($80, gratuito com seguro)",
-        "- TECLA [1]     →  Pit: Trocar para Pneu Normal ($30)",
-        "- TECLA [2]     →  Pit: Trocar para Pneu de Chuva ($50)",
-        "- TECLA [3]     →  Pit: Contratar Seguro Automóvel ($100)",
-        "",
-        "COMO JOGAR:",
-        "  Passa no Checkpoint antes de cruzar a Meta para a volta ser válida.",
-        "  Se entrares no Pit, tens de completar o resto da volta até à Meta.",
-        "  Essa passagem pela Meta não conta — só a volta seguinte é válida.",
-        "  Responde aos Quizes para ganhar $10 de bónus por resposta certa.",
-        "",
-        "  CHUVA:  Pneus Chuva dão vantagem na pista molhada.",
-        "  SECO:   Pneus Normais (Slick) têm desempenho máximo."
-    ];
+   var _regras = [
+    "- SETAS / WASD  →  Conduzir o veículo",
+    "- TECLA [E]     →  Chamar Reboque ($80, gratuito com seguro)",
+    "- TECLA [1]     →  Pit: Trocar para Pneu Normal ($30)",
+    "- TECLA [2]     →  Pit: Trocar para Pneu de Chuva ($50)",
+    "- TECLA [3]     →  Pit: Contratar Seguro Automóvel ($100)",
+    "",
+    "COMO JOGAR:",
+    "  Passa no Checkpoint antes de cruzar a Meta para a volta ser válida.",
+    "  Responde aos Quizes para ganhar $10 de bónus por resposta certa.",
+    "",
+    "  CHUVA:  Pneus Chuva dão vantagem na pista molhada.",
+    "  SECO:   Pneus Normais (Slick) têm desempenho máximo."
+];
 
     draw_set_color(c_white);
     for (var j = 0; j < array_length(_regras); j++) {
@@ -177,7 +175,7 @@ if (instance_exists(obj_carro)) {
     draw_roundrect_ext(22, 130, 22 + (256 * (_pct / 100)), 144, 4, 4, false);
     
     draw_set_color(c_white);
-    draw_text_transformed(22, 150, "COMBUSTÍVEL  " + string(_pct) + "%", _scale_mini, _scale_mini, 0);
+   draw_text_transformed(22, 150, "COMBUSTÍVEL  " + string(ceil(obj_carro.combustivel)) + " / " + string(obj_carro.combustivel_maximo) + "L", _scale_mini, _scale_mini, 0);
 
     var _txt_pneu = (obj_carro.pneu_atual == "chuva") ? "CHUVA" : "NORMAL";
     draw_set_color((obj_carro.pneu_atual == "chuva") ? c_aqua : c_silver);
@@ -269,20 +267,19 @@ if (instance_exists(obj_carro)) {
         draw_set_color(c_black);
         draw_text_transformed(_lx, _ly + 119, tem_seguro ? "✓ APÓLICE DE SEGURO ATIVA ($0 por reboque)" : "[3] SEGURO AUTOMÓVEL  $100", _scale_sub, _scale_sub, 0);
 
-        // [4] Upgrade Tanque
-        var _tem4 = (moedas >= custo_upgrade_tanque && !upgrade_tanque);
-        draw_set_color(upgrade_tanque ? c_lime : (_tem4 ? make_color_rgb(255, 220, 50) : c_dkgray));
-        draw_set_alpha(upgrade_tanque || _tem4 ? 1 : 0.5);
-        draw_roundrect_ext(_lx - _pw + 20, _ly + 158, _lx + _pw - 20, _ly + 193, 6, 6, false);
-        draw_set_color(c_black);
-        draw_text_transformed(_lx, _ly + 167, upgrade_tanque ? "✓ TANQUE EXTRA INSTALADO (+50% capacidade)" : "[4] UPGRADE: TANQUE EXTRA  $60", _scale_sub, _scale_sub, 0);
-
-        draw_set_alpha(1);
-        draw_set_color(c_gray);
-        draw_text_transformed(_lx, _ly + 216, "O timer da volta está pausado enquanto estiveres no pit.", _scale_mini, _scale_mini, 0);
-
-        draw_set_halign(fa_left);
-    }
+// [4] Upgrade Tanque — 3 níveis
+var _nv = fuel_upgrade_nivel;
+var _max4 = (_nv >= 3);
+var _tem4 = (moedas >= custo_upgrade_tanque && !_max4);
+var _proximo_max = 100 + (25 * (_nv + 1));
+var _txt_up = _max4
+    ? "✓ TANQUE MÁXIMO — 175L instalado"
+    : "[4] UPGRADE TANQUE +25L  →  " + string(_proximo_max) + "L   $" + string(custo_upgrade_tanque) + "   (nível " + string(_nv + 1) + "/3)";
+draw_set_color(_max4 ? c_lime : (_tem4 ? make_color_rgb(255, 220, 50) : c_dkgray));
+draw_set_alpha(_max4 || _tem4 ? 1 : 0.5);
+draw_roundrect_ext(_lx - _pw + 20, _ly + 158, _lx + _pw - 20, _ly + 193, 6, 6, false);
+draw_set_color(c_black);
+draw_text_transformed(_lx, _ly + 167, _txt_up, _scale_sub, _scale_sub, 0);
 }
 
 // =====================================================
@@ -348,26 +345,6 @@ if (pergunta_ativa) {
     }
 }
 
-// =====================================================
-// AVISO PÓS-PIT
-// =====================================================
-if (voltando_do_pit || aviso_pit_timer > 0) {
-    var _pulse = 0.7 + 0.3 * sin(current_time * 0.008);
-    var _msg = voltando_do_pit
-        ? "⚑  PIT CONCLUÍDO — Complete esta volta até à meta para reiniciar"
-        : "✓  Volta de regresso registada — Nova volta em curso!";
-    var _cor_aviso = voltando_do_pit ? make_color_rgb(255, 180, 0) : c_lime;
-
-    draw_set_halign(fa_center);
-    draw_set_color(c_black);
-    draw_set_alpha(0.6);
-    draw_roundrect_ext(_gui_w/2 - 360, _gui_h - 60, _gui_w/2 + 360, _gui_h - 18, 6, 6, false);
-    draw_set_alpha(_pulse);
-    draw_set_color(_cor_aviso);
-    draw_text_transformed(_gui_w/2, _gui_h - 46, _msg, _scale_sub, _scale_sub, 0);
-    draw_set_alpha(1);
-    draw_set_halign(fa_left);
-}
 
 // =====================================================
 // DICA ESC
@@ -383,3 +360,4 @@ draw_set_alpha(1);
 draw_set_color(c_white);
 draw_set_alpha(1);
 draw_set_halign(fa_left);
+}

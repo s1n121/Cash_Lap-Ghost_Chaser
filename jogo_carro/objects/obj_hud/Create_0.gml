@@ -16,8 +16,8 @@ primeira_volta = true;
 // --- PIT STOP ---
 voltando_do_pit = false;   // pode ficar mas já não é usado
 aviso_pit_timer = 0;
-upgrade_tanque = false;
-custo_upgrade_tanque = 60;
+fuel_upgrade_nivel = 0;     // ← substitui upgrade_tanque
+custo_upgrade_tanque = 60;  // ← fica igual
 
 // --- PAUSA ---
 jogo_pausado = false;

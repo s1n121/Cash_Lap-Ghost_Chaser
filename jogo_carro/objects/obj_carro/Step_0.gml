@@ -1,4 +1,4 @@
-// Congela o carro se o jogo estiver pausado
+                                     // Congela o carro se o jogo estiver pausado
 if (instance_exists(obj_hud) && obj_hud.jogo_pausado) {
     vel = 0;
     speed = 0;
@@ -90,8 +90,10 @@ if (pode_mover && !em_pergunta && !aguardando_reboque) {
     // Se o carro for travado por uma velocidade máxima menor atual (ex: ao errar a pergunta)
     if (vel > max_speed_atual) vel = lerp(vel, max_speed_atual, 0.1);
 
-    // --- COMBUSTÍVEL ---
-    if (abs(vel) > 0.2) combustivel -= 0.05;
+    if (abs(vel) > 0.2) {
+    var _consumo = [0.12, 0.10, 0.08, 0.06][fuel_upgrade_nivel];
+    combustivel -= _consumo;
+}
 
     if (combustivel <= 0) {
         combustivel = 0; vel = 0; pode_mover = false; aguardando_reboque = true;
@@ -147,3 +149,9 @@ if (pode_mover && !em_pergunta && !aguardando_reboque) {
 }
 
 speed = 0;
+
+// Pressionar R volta ao início da pista
+if (keyboard_check_pressed(ord("R"))) {
+    reset_to_start();
+}
+

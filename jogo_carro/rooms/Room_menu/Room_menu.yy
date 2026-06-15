@@ -17,8 +17,8 @@
   ],
   "name":"Room_menu",
   "parent":{
-    "name":"jogo_carro",
-    "path":"jogo_carro.yyp",
+    "name":"jogo",
+    "path":"jogo.yyp",
   },
   "parentRoom":null,
   "physicsSettings":{

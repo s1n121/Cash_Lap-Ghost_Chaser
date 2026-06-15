@@ -2,6 +2,7 @@
   "FolderOrderSettings":[
     {"name":"Fonts","order":5,"path":"folders/Fonts.yy",},
     {"name":"objects","order":1,"path":"folders/objects.yy",},
+    {"name":"script","order":7,"path":"folders/script.yy",},
     {"name":"Sounds","order":6,"path":"folders/Sounds.yy",},
     {"name":"sprites","order":2,"path":"folders/sprites.yy",},
   ],
